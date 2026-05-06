@@ -1025,15 +1025,23 @@ var SUPA_URL = 'https://obnsbtpphalvsydfndi.supabase.co';
 var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibnNidHBwdmhhbHZzeWRmbmRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNTU3NTcsImV4cCI6MjA5MzYzMTc1N30.Nld2tlAbKihkLYEPzVo5X6tYrKtm6U4nbnsajXKEjcQ';
 
 async function supaInsert(table, data) {
+  // Remove undefined/empty fields
+  var clean = {};
+  for (var k in data) {
+    if (data[k] !== undefined && data[k] !== null && data[k] !== '') {
+      clean[k] = data[k];
+    }
+  }
   var res = await fetch(SUPA_URL + '/rest/v1/' + table, {
     method: 'POST',
     headers: {
       'apikey': SUPA_KEY,
       'Authorization': 'Bearer ' + SUPA_KEY,
       'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
+      'Prefer': 'return=representation',
+      'X-Client-Info': 'cic-website'
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(clean)
   });
   return res;
 }
