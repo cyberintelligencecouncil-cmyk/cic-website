@@ -1020,35 +1020,12 @@ footer { background:var(--black); border-top:1px solid var(--border); padding:cl
 </footer>
 
 <script>
-// ── CONFIG ───────────────────────────────────────────────
-var SB_URL = 'https://obnsbtpphalvsydfndi.supabase.co';
-var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibnNidHBwdmhhbHZzeWRmbmRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNTU3NTcsImV4cCI6MjA5MzYzMTc1N30.Nld2tlAbKihkLYEPzVo5X6tYrKtm6U4nbnsajXKEjcQ';
+// ── Web3Forms Access Key ───────────────────────────────────
+// Free service - sends form submissions to cyberintelligencecouncil@gmail.com
+// Get your own key at web3forms.com if needed
+var W3F_KEY = '9a4a06e4-1a51-4f05-b3ac-2b400c4c32e7'; // Will be replaced after setup
 
-// ── SUPABASE INSERT using XMLHttpRequest (no fetch/CORS issues) ──
-function sbInsert(table, data, onSuccess, onError) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', SB_URL + '/rest/v1/' + table, true);
-  xhr.setRequestHeader('apikey', SB_KEY);
-  xhr.setRequestHeader('Authorization', 'Bearer ' + SB_KEY);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('Prefer', 'return=minimal');
-  xhr.setRequestHeader('Accept', 'application/json');
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4) {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onSuccess();
-      } else {
-        onError(xhr.status + ' ' + xhr.responseText);
-      }
-    }
-  };
-  xhr.onerror = function() {
-    onError('Network error');
-  };
-  xhr.send(JSON.stringify(data));
-}
-
-// ── PARTICLES ────────────────────────────────────────────
+// ── PARTICLES ─────────────────────────────────────────────
 (function(){
   var c=document.getElementById('ptcls');
   for(var i=0;i<16;i++){
@@ -1059,7 +1036,7 @@ function sbInsert(table, data, onSuccess, onError) {
   }
 })();
 
-// ── TICKER ───────────────────────────────────────────────
+// ── TICKER ────────────────────────────────────────────────
 (function(){
   var items=['GRC & Compliance','ISO 27001','Cybersecurity Audit','VAPT','SOC Advisory','ISMS','BCMS','Incident Response','Cloud Security','AI Security','TPRM','Corporate Training','GDPR','DORA','HIPAA','SOX','NIST CSF','NCA','SAMA','RBI','SEBI','Digital Forensics','Cyber Resilience'];
   var t=document.getElementById('ticker');
@@ -1067,18 +1044,16 @@ function sbInsert(table, data, onSuccess, onError) {
   t.innerHTML=h+h;
 })();
 
-// ── SCROLL REVEAL ─────────────────────────────────────────
+// ── SCROLL REVEAL ──────────────────────────────────────────
 var ro=new IntersectionObserver(function(e){
   e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('on');});
 },{threshold:0.08});
 document.querySelectorAll('.sr').forEach(function(el){ro.observe(el);});
 
-// ── NAV SCROLL ───────────────────────────────────────────
+// ── NAV ───────────────────────────────────────────────────
 window.addEventListener('scroll',function(){
   document.getElementById('nav').style.boxShadow=window.scrollY>35?'0 4px 28px rgba(0,0,0,.6)':'none';
 },{passive:true});
-
-// ── HAMBURGER ─────────────────────────────────────────────
 function toggleNav(){
   document.getElementById('drawer').classList.toggle('open');
   document.getElementById('burger').classList.toggle('open');
@@ -1092,94 +1067,95 @@ document.addEventListener('click',function(e){
   var b=document.getElementById('burger');
   if(d.classList.contains('open')&&!d.contains(e.target)&&!b.contains(e.target)){closeNav();}
 });
-
-// ── OTHER FIELD TOGGLE ────────────────────────────────────
 function toggleOther(selId,groupId,triggerVal){
   var sel=document.getElementById(selId);
   var grp=document.getElementById(groupId);
   grp.style.display=(sel.value===triggerVal)?'block':'none';
 }
 
-// ── SHOW MESSAGE ─────────────────────────────────────────
-function showMsg(id, msg, isError){
-  var el=document.getElementById(id);
-  el.innerHTML=msg;
-  el.style.display='block';
-  el.style.color=isError?'#f0a030':'#00c878';
-  el.style.borderColor=isError?'rgba(240,160,48,.3)':'rgba(0,200,100,.28)';
-  el.style.background=isError?'rgba(240,160,48,.08)':'rgba(0,170,90,.08)';
-  setTimeout(function(){el.style.display='none';},8000);
+// ── SEND FORM via Web3Forms ───────────────────────────────
+function sendForm(data, okId, btn, resetFn) {
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(json){
+    var ok = document.getElementById(okId);
+    if(json.success){
+      ok.innerHTML = '✅ Submitted! We will be in touch within 24 hours.';
+      ok.style.color = '#00c878';
+      ok.style.background = 'rgba(0,170,90,.08)';
+      ok.style.borderColor = 'rgba(0,200,100,.28)';
+      ok.style.display = 'block';
+      resetFn();
+      setTimeout(function(){ ok.style.display='none'; }, 8000);
+    } else {
+      throw new Error(json.message);
+    }
+  })
+  .catch(function(err){
+    var ok = document.getElementById(okId);
+    ok.innerHTML = '⚠️ Please email us: cyberintelligencecouncil@gmail.com';
+    ok.style.color = '#f0a030';
+    ok.style.background = 'rgba(240,160,48,.08)';
+    ok.style.borderColor = 'rgba(240,160,48,.3)';
+    ok.style.display = 'block';
+  })
+  .finally(function(){
+    btn.disabled = false;
+  });
 }
 
 // ── ENQUIRY FORM ──────────────────────────────────────────
-document.getElementById('eqForm').addEventListener('submit',function(e){
+document.getElementById('eqForm').addEventListener('submit', function(e){
   e.preventDefault();
-  var btn=this.querySelector('.fbtn');
-  btn.textContent='Sending...';
-  btn.disabled=true;
-
-  var data={
-    name: document.getElementById('q_name').value,
-    email: document.getElementById('q_email').value,
+  var btn = this.querySelector('.fbtn');
+  var form = this;
+  sendForm({
+    access_key: W3F_KEY,
+    subject: 'New Business Enquiry — Cyber Intelligence Council',
+    from_name: 'CIC Website',
+    name:    document.getElementById('q_name').value,
+    email:   document.getElementById('q_email').value,
     company: document.getElementById('q_co').value,
-    phone: document.getElementById('q_ph').value,
+    phone:   document.getElementById('q_ph').value,
     service: document.getElementById('q_svc').value,
-    other_service: document.getElementById('q_other').value,
     message: document.getElementById('q_msg').value,
-    submitted_at: new Date().toISOString()
-  };
-
-  sbInsert('enquiries', data,
-    function(){
-      showMsg('q_ok','✅ Enquiry received! We will be in touch within 24 hours.',false);
-      document.getElementById('eqForm').reset();
-      document.getElementById('q_og').style.display='none';
-      btn.textContent='Send Enquiry →';
-      btn.disabled=false;
-    },
-    function(err){
-      console.error('Error:',err);
-      showMsg('q_ok','⚠️ Submission failed. Please email: cyberintelligencecouncil@gmail.com',true);
-      btn.textContent='Send Enquiry →';
-      btn.disabled=false;
-    }
-  );
+    type:    'Business Enquiry'
+  }, 'q_ok', btn, function(){
+    form.reset();
+    document.getElementById('q_og').style.display='none';
+    btn.textContent='Send Enquiry →';
+  });
 });
 
 // ── ENROLLMENT FORM ───────────────────────────────────────
-document.getElementById('enForm').addEventListener('submit',function(e){
+document.getElementById('enForm').addEventListener('submit', function(e){
   e.preventDefault();
-  var btn=this.querySelector('.fbtn');
-  btn.textContent='Sending...';
-  btn.disabled=true;
-
-  var data={
-    name: document.getElementById('e_name').value,
-    email: document.getElementById('e_email').value,
-    phone: document.getElementById('e_ph').value,
+  var btn = this.querySelector('.fbtn');
+  var form = this;
+  sendForm({
+    access_key: W3F_KEY,
+    subject: 'New Training Enrollment — Cyber Intelligence Council',
+    from_name: 'CIC Website',
+    name:         document.getElementById('e_name').value,
+    email:        document.getElementById('e_email').value,
+    phone:        document.getElementById('e_ph').value,
     organisation: document.getElementById('e_org').value,
-    course: document.getElementById('e_course').value,
-    other_course: document.getElementById('e_other').value,
-    format: document.getElementById('e_fmt').value,
-    team_size: document.getElementById('e_sz').value,
-    submitted_at: new Date().toISOString()
-  };
-
-  sbInsert('enrollments', data,
-    function(){
-      showMsg('e_ok','✅ Enrollment received! Our training team will contact you shortly.',false);
-      document.getElementById('enForm').reset();
-      document.getElementById('e_og').style.display='none';
-      btn.textContent='Register Now →';
-      btn.disabled=false;
-    },
-    function(err){
-      console.error('Error:',err);
-      showMsg('e_ok','⚠️ Submission failed. Please email: cyberintelligencecouncil@gmail.com',true);
-      btn.textContent='Register Now →';
-      btn.disabled=false;
-    }
-  );
+    course:       document.getElementById('e_course').value,
+    format:       document.getElementById('e_fmt').value,
+    team_size:    document.getElementById('e_sz').value,
+    type:         'Training Enrollment'
+  }, 'e_ok', btn, function(){
+    form.reset();
+    document.getElementById('e_og').style.display='none';
+    btn.textContent='Register Now →';
+  });
 });
 </script>
 
